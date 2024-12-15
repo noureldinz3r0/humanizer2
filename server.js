@@ -3,7 +3,7 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 
 dotenv.config();
 
@@ -11,12 +11,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  methods: ['POST'],
-  allowedHeaders: ['Content-Type']
-}));
+// Configure CORS to accept requests from any origin in development
+// In production, you should restrict this to your frontend domain
+app.use(cors());
 app.use(express.json());
 
 // StealthGPT proxy endpoint
@@ -42,13 +39,14 @@ app.post('/api/humanize', async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
+    console.error('API Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy' });
+app.get('/', (req, res) => {
+  res.json({ status: 'healthy', message: 'Proxy server is running' });
 });
 
 app.listen(port, () => {
